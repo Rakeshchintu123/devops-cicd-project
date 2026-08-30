@@ -45,28 +45,26 @@ pipeline {
                         passwordVariable: 'DOCKER_PASSWORD'
                     )
                 ]) {
-                    bat '''
+                    powershell '''
                         docker logout
 
-                        echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USER% --password-stdin
+                        $env:DOCKER_PASSWORD | docker login --username $env:DOCKER_USER --password-stdin
 
-                        if errorlevel 1 (
-                            echo Docker Hub login failed
-                            exit /b 1
-                        )
+                        if ($LASTEXITCODE -ne 0) {
+                            Write-Error "Docker Hub login failed"
+                            exit 1
+                        }
 
-                        docker push %DOCKER_IMAGE%:%BUILD_NUMBER%
+                        docker push "$env:DOCKER_IMAGE`:$env:BUILD_NUMBER"
+                        if ($LASTEXITCODE -ne 0) {
+                            Write-Error "Docker image push failed"
+                            exit 1
+                        }
 
-                        if errorlevel 1 (
-                            echo Docker image push failed
-                            exit /b 1
-                        )
-
-                        docker push %DOCKER_IMAGE%:latest
-
-                        if errorlevel 1 (
-                            echo Docker latest image push failed
-                            exit /b 1
+                        docker push "$env:DOCKER_IMAGE`:latest"
+                        if ($LASTEXITCODE -ne 0) {
+                            Write-Error "Docker latest image push failed"
+                            exit 1
                         }
 
                         docker logout
