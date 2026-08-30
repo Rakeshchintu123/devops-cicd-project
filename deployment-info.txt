@@ -1,0 +1,4 @@
+Application: devops-cicd-app
+Environment: development
+Docker Image: yourdockerhubusername/devops-cicd-app:latest
+Kubernetes Namespace: default
